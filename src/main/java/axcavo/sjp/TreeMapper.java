@@ -7,20 +7,20 @@ import java.util.List;
 import java.util.Map;
 
 
-class JParser {
+class TreeMapper {
     private final List<Token> tokens;
     private int current = 0;
 
-    JParser(List<Token> tokens) {
+    TreeMapper(List<Token> tokens) {
         this.tokens = tokens;
     }
 
-    Map<String, Object> parse() {
+    Map<String, Object> map() {
         return object().map();
     }
 
     private JsonExpr.ObjectExpr object() {
-        consume(OBJECT_START, "Expected {");
+        consume(OBJECT_START, "Expected '{'");
 
         List<JsonExpr.PairExpr> pairs = new ArrayList<>();
 
@@ -30,7 +30,7 @@ class JParser {
             } while (match(VALUE_SEPARATOR));
         }
 
-        consume(OBJECT_END, "Expected }");
+        consume(OBJECT_END, "Expected '}'");
 
         return new JsonExpr.ObjectExpr(pairs);
     }
@@ -42,14 +42,14 @@ class JParser {
 
     private JsonExpr<Map.Entry<String, Object>> pair() {
         JsonExpr.StringValue key = (JsonExpr.StringValue) stringValue();
-        consume(KEY_SEPARATOR, "Expected :");
+        consume(KEY_SEPARATOR, "Expected ':'");
         JsonExpr<?> value = value();
 
         return new JsonExpr.PairExpr(key, value);
     }
 
     private JsonExpr<List<Object>> array() {
-        consume(ARRAY_START, "Expected [");
+        consume(ARRAY_START, "Expected '['");
 
         List<JsonExpr<?>> values = new ArrayList<>();
 
@@ -59,23 +59,23 @@ class JParser {
             } while (match(VALUE_SEPARATOR));
         }
 
-        consume(ARRAY_END, "Expected ]");
+        consume(ARRAY_END, "Expected ']'");
 
         return new JsonExpr.ArrayExpr(values);
     }
 
     private JsonExpr<Double> numberValue() {
-        Token token = consume(NUMBER_VALUE, "Expected number.");
+        Token token = consume(NUMBER_VALUE, "Expected Number.");
         return new JsonExpr.NumberValue(token);
     }
 
     private JsonExpr<Boolean> booleanValue() {
-        Token token = consume(BOOLEAN_VALUE, "Expected boolean.");
+        Token token = consume(BOOLEAN_VALUE, "Expected Boolean.");
         return new JsonExpr.BooleanValue(token);
     }
 
     private JsonExpr<Object> nullValue() {
-        Token token = consume(NUMBER_VALUE, "Expected null.");
+        Token token = consume(NUMBER_VALUE, "Expected Null.");
         return new JsonExpr.NullValue(token);
     }
 
@@ -125,6 +125,6 @@ class JParser {
 
     private Token consume(TokenType type, String message) {
         if (check(type)) return advance();
-        throw new JsonParserException(message + " Found: " + peek().type + " (" + peek().lexeme + ")");
+        throw new JsonParserException(String.format("%s Found: '%s'. At line %d.", message, peek().lexeme, peek().line));
     }
 }

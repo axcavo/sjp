@@ -64,7 +64,7 @@ public class Scanner {
 			} else if(isDigit(c)) {
 				number();
 			} else {
-				throw new ScannerException(String.format("Invalid token %c found at %d in line %d", c, current, line));
+				throw new ScannerException(String.format("Invalid token %c found at line %d.", c, current, line));
 			}
 			break;
 		}
@@ -100,7 +100,7 @@ public class Scanner {
 		}
 
 		if (isAtEnd()) {
-			throw new ScannerException(String.format("Unterminated string started at line %d", line));
+			throw new ScannerException(String.format("Found unterminated string started at line %d.", line));
 		}
 
 		advance();
@@ -139,7 +139,7 @@ public class Scanner {
 			case "true" -> true;
 			case "false" -> false;
 			case "null" -> null;
-			default -> throw new ScannerException("Invalid keyword");
+			default -> throw new ScannerException(String.format("Invalid value found at line %d.", line));
 		};
 
 		addToken(type, literal);
