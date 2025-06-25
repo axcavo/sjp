@@ -4,6 +4,7 @@ import static axcavo.sjp.TokenType.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 class JParser {
@@ -14,102 +15,77 @@ class JParser {
         this.tokens = tokens;
     }
 
-    Obj parse() {
-        return object();
+    Map<String, Object> parse() {
+        return object().map();
     }
 
-    private Obj objectStart() {
-        Token token = consume(OBJECT_START, "Expected '{' at the beginning of the object.");
-        return new Obj.ObjectStart(token);
-    }
+    private JsonExpr.ObjectExpr object() {
+        consume(OBJECT_START, "Expected {");
 
-    private Obj objectEnd() {
-        Token token = consume(OBJECT_END, "Expected '}' at the end of the object.");
-        return new Obj.ObjectEnd(token);
-    }
-
-    private Obj object() {
-        Obj.ObjectStart objectStart = (Obj.ObjectStart) objectStart();
-
-        List<Obj.Pair> pairs = new ArrayList<>();
+        List<JsonExpr.PairExpr> pairs = new ArrayList<>();
 
         if (!check(OBJECT_END)) {
             do {
-                pairs.add((Obj.Pair) pair());
+                pairs.add((JsonExpr.PairExpr) pair());
             } while (match(VALUE_SEPARATOR));
         }
 
-        Obj.ObjectEnd objectEnd = (Obj.ObjectEnd) objectEnd();
+        consume(OBJECT_END, "Expected }");
 
-        return new Obj.Object(objectStart, pairs, objectEnd);
+        return new JsonExpr.ObjectExpr(pairs);
     }
 
-    private Obj stringValue() {
+    private JsonExpr<String> stringValue() {
         Token token = consume(STRING_VALUE, "Expected String.");
-        return new Obj.StringValue(token);
+        return new JsonExpr.StringValue(token);
     }
 
-    private Obj valueSeparator() {
-        Token token = consume(KEY_SEPARATOR, "Expected ':'");
-        return new Obj.ValueSeparator(token);
+    private JsonExpr<Map.Entry<String, Object>> pair() {
+        JsonExpr.StringValue key = (JsonExpr.StringValue) stringValue();
+        consume(KEY_SEPARATOR, "Expected :");
+        JsonExpr<?> value = value();
+
+        return new JsonExpr.PairExpr(key, value);
     }
 
-    private Obj pair() {
-        Obj.StringValue key = (Obj.StringValue) stringValue();
-        valueSeparator();
-        Obj.Value value = (Obj.Value) value();
+    private JsonExpr<List<Object>> array() {
+        consume(ARRAY_START, "Expected [");
 
-        return new Obj.Pair(key, value);
-    }
-
-    private Obj arrayStart() {
-        Token token = consume(ARRAY_START, "Expected '['.");
-        return new Obj.ArrayStart(token);
-    }
-
-    private Obj arrayEnd() {
-        Token token = consume(ARRAY_END, "Expected ']'.");
-        return new Obj.ArrayEnd(token);
-    }
-
-    private Obj array() {
-        Obj.ArrayStart arrayStart = (Obj.ArrayStart) arrayStart();
-
-        List<Obj.Value> values = new ArrayList<>();
+        List<JsonExpr<?>> values = new ArrayList<>();
 
         if (!check(ARRAY_END)) {
             do {
-                values.add((Obj.Value) value());
+                values.add(value());
             } while (match(VALUE_SEPARATOR));
         }
 
-        Obj.ArrayEnd arrayEnd = (Obj.ArrayEnd) arrayEnd();
+        consume(ARRAY_END, "Expected ]");
 
-        return new Obj.Array(arrayStart, values, arrayEnd);
+        return new JsonExpr.ArrayExpr(values);
     }
 
-    private Obj numberValue() {
+    private JsonExpr<Double> numberValue() {
         Token token = consume(NUMBER_VALUE, "Expected number.");
-        return new Obj.NumberValue(token);
+        return new JsonExpr.NumberValue(token);
     }
 
-    private Obj booleanValue() {
+    private JsonExpr<Boolean> booleanValue() {
         Token token = consume(BOOLEAN_VALUE, "Expected boolean.");
-        return new Obj.BooleanValue(token);
+        return new JsonExpr.BooleanValue(token);
     }
 
-    private Obj nullValue() {
+    private JsonExpr<Object> nullValue() {
         Token token = consume(NUMBER_VALUE, "Expected null.");
-        return new Obj.NullValue(token);
+        return new JsonExpr.NullValue(token);
     }
 
-    private Obj value() {
-        if (check(STRING_VALUE)) return new Obj.Value(stringValue());
-        if (check(NUMBER_VALUE)) return new Obj.Value(numberValue());
-        if (check(BOOLEAN_VALUE)) return new Obj.Value(booleanValue());
-        if (check(NULL_VALUE)) return new Obj.Value(nullValue());
-        if (check(OBJECT_START)) return new Obj.Value(object());
-        if (check(ARRAY_START)) return new Obj.Value(array());
+    private JsonExpr<?> value() {
+        if (check(STRING_VALUE)) return stringValue();
+        if (check(NUMBER_VALUE)) return numberValue();
+        if (check(BOOLEAN_VALUE)) return booleanValue();
+        if (check(NULL_VALUE)) return nullValue();
+        if (check(OBJECT_START)) return object();
+        if (check(ARRAY_START)) return array();
 
         throw new JsonParserException("error");
     }
@@ -151,15 +127,4 @@ class JParser {
         if (check(type)) return advance();
         throw new JsonParserException(message + " Found: " + peek().type + " (" + peek().lexeme + ")");
     }
-
-
-    /*
-    static void error(Token token, String message) {
-        if (token.type == EOF) {
-            report(token.line, " at end", message);
-        } else {
-            report(token.line, " at '" + token.lexeme + "'", message);
-        }
-    }
-    */
 }

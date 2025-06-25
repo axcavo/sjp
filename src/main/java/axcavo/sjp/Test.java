@@ -1,12 +1,8 @@
 package axcavo.sjp;
 
-import java.io.IOException;
-import java.util.Map;
-
-public class SJP {
-
-	public static void main(String[] args) throws IOException {
-		String json = 
+public class Test {
+    public static void main(String[] args) {
+        String json = 
 		"""
 		{
 			"name": "Alice",
@@ -23,10 +19,7 @@ public class SJP {
 			]
 		}
 		""";
-
-				
-		SimpleJsonParser sjp = new SimpleJsonParser();
-		System.out.println(sjp.parse(json));
-	}
-	
+        SimpleJsonParser sjp = new SimpleJsonParser();
+        System.out.println(sjp.parse(json));;
+    }
 }
