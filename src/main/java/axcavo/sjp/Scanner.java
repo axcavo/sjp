@@ -14,7 +14,7 @@ public class Scanner {
 		keywords = new HashMap<>();
 		keywords.put("true", BOOLEAN_VALUE);
 		keywords.put("false", BOOLEAN_VALUE);
-		keywords.put("null", BOOLEAN_VALUE);
+		keywords.put("null", NULL_VALUE);
 	}
 
 	private final String source;

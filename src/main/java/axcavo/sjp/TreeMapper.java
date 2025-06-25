@@ -75,7 +75,7 @@ class TreeMapper {
     }
 
     private JsonExpr<Object> nullValue() {
-        Token token = consume(NUMBER_VALUE, "Expected Null.");
+        Token token = consume(NULL_VALUE, "Expected Null.");
         return new JsonExpr.NullValue(token);
     }
 

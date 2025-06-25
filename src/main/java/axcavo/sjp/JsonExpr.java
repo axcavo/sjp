@@ -1,5 +1,6 @@
 package axcavo.sjp;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -85,7 +86,7 @@ abstract class JsonExpr<R> {
 
         @Override
         Entry<String, Object> map() {
-            return Map.entry(key.map(), value.map());
+            return new AbstractMap.SimpleEntry<String, Object>(key.map(), value.map());
         }
     }
 
